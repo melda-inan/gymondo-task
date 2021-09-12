@@ -1,0 +1,25 @@
+version: "3.3"
+services:
+  gymondo-db:
+    build:
+      context: ./db
+      args:
+        DB_USER: admin
+        DB_PASSWORD: admin
+        DB_NAME: gymondo
+    container_name: gymondo-db
+    ports: 
+    - "5432:5432"
+  gymondo-app:
+    build:
+      context: ./gymondo-assessment
+    container_name: gymondo-app
+    depends_on:
+    - gymondo-db
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://gymondo-db:5432/gymondo"
+      SPRING_DATASOURCE_USERNAME: "admin"
+      SPRING_DATASOURCE_PASSWORD: "admin"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+    ports:
+    - "8080:8080"
