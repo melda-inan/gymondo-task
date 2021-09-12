@@ -6,9 +6,9 @@ import com.gymondo.model.dto.SubscriptionRequestDto;
 import com.gymondo.service.ProductService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -39,7 +39,7 @@ public class ProductController {
 
     @ApiOperation(value = "Subscribe to Product - Buy/subscribe to product for given customer")
     @PostMapping("/{productId}/subscribe")
-    public CustomerSubscriptionDto subscribe(@PathVariable("productId") Long productId, @RequestBody @Validated SubscriptionRequestDto subscriptionRequest) {
+    public CustomerSubscriptionDto subscribe(@PathVariable("productId") Long productId, @Valid @RequestBody SubscriptionRequestDto subscriptionRequest) {
         return productService.subscribe(productId, subscriptionRequest);
     }
 

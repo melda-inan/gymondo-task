@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,13 +30,13 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public Voucher getVoucherEntity(Long id) {
-        Voucher voucher = voucherRepository.getById(id);
+        Optional<Voucher> voucher = voucherRepository.findById(id);
 
-        if (voucher == null) {
+        if (voucher.isEmpty()) {
             throw new EntityNotFoundException("No voucher found with id: " + id);
         }
 
-        return voucher;
+        return voucher.get();
     }
 
     @Override

@@ -1,12 +1,12 @@
 package com.gymondo.model.dto;
 
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.lang.NonNull;
+
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
@@ -14,15 +14,15 @@ import org.springframework.lang.NonNull;
 @AllArgsConstructor
 public class SubscriptionRequestDto {
 
-    @NonNull
-    @ApiModelProperty(value = "Id of the customer who wants to subscribe", example = "1")
+    @NotNull(message = "customerId can not be null.")
+    @ApiModelProperty(value = "Id of the customer who wants to subscribe", example = "1", required = true)
     private Long customerId;
 
-    @NonNull
-    @ApiModelProperty(value = "Id of the subscription that belongs to product", example = "1")
+    @NotNull
+    @ApiModelProperty(value = "Id of the subscription that belongs to product", example = "1", required = true)
     private Long subscriptionId;
 
-    @ApiModelProperty(value = "Vourcher's code information", example = "WELCOMENEWBY")
+    @ApiModelProperty(value = "Voucher's code information", example = "WELCOMENEWBY")
     private String voucherCode;
 
     @ApiModelProperty(value = "Indicates if this is a trial subscription", example = "false")

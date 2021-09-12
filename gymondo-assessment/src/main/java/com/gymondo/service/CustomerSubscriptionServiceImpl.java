@@ -47,11 +47,11 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
 
     @Override
     public CustomerSubscription generateCustomerSubscription(Product product, SubscriptionRequestDto subscriptionRequest) {
-        checkIfExist(subscriptionRequest.getCustomerId(), subscriptionRequest.getSubscriptionId());
-
         Customer customer = customerService.getCustomerEntity(subscriptionRequest.getCustomerId());
 
         Subscription subscription = getAndValidateSubscription(subscriptionRequest.getSubscriptionId(), product);
+
+        checkIfExist(subscriptionRequest.getCustomerId(), subscriptionRequest.getSubscriptionId());
 
         CustomerSubscription customerSubscription = new CustomerSubscription();
         customerSubscription.setSubscription(subscription);

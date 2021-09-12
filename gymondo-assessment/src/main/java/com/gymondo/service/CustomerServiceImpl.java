@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,13 +22,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer getCustomerEntity(Long id) {
-        Customer customer = customerRepository.getById(id);
+        Optional<Customer> customer = customerRepository.findById(id);
 
-        if (customer == null) {
+        if (customer.isEmpty()) {
             throw new EntityNotFoundException(String.format("No customer is found with id: %s", id));
         }
 
-        return customer;
+        return customer.get();
     }
 
     @Override

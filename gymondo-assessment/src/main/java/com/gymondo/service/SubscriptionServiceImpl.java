@@ -5,6 +5,7 @@ import com.gymondo.repository.SubscriptionRepository;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Optional;
 
 @Service
 public class SubscriptionServiceImpl implements SubscriptionService {
@@ -18,13 +19,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public Subscription getSubscriptionEntity(Long id) {
-        Subscription subscription = subscriptionRepository.getById(id);
+        Optional<Subscription> subscription = subscriptionRepository.findById(id);
 
-        if (subscription == null) {
+        if (subscription.isEmpty()) {
             throw new EntityNotFoundException("No subscription found with id: " + id);
         }
 
-        return subscription;
+        return subscription.get();
     }
 
 }

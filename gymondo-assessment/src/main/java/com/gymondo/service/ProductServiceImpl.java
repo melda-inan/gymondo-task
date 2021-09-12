@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,13 +48,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Product getProductEntity(Long id) {
-        Product product = productRepository.getById(id);
+        Optional<Product> product = productRepository.findById(id);
 
-        if (product == null) {
+        if (product.isEmpty()) {
             throw new EntityNotFoundException("No product found with id: " + id);
         }
 
-        return product;
+        return product.get();
     }
 
     @Override
