@@ -1,7 +1,5 @@
 package com.gymondo.model.enums;
 
-import com.gymondo.model.entity.CustomerSubscription;
-
 public enum CustomerSubscriptionStatus {
     ACTIVE("A"),
     PAUSED("P"),

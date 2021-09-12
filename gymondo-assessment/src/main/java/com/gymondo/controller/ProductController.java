@@ -23,12 +23,12 @@ public class ProductController {
     }
 
     @ApiOperation(value = "Get Product By Id")
-    @GetMapping("/{id}")
-    public ProductDto getProductById(@PathVariable Long id) {
-        return productService.getProduct(id);
+    @GetMapping("/{productId}")
+    public ProductDto getProductById(@PathVariable Long productId) {
+        return productService.getProduct(productId);
     }
 
-    @ApiOperation(value = "List Products with or without Voucher Code")
+    @ApiOperation(value = "List Products - List all products or list products by voucher code")
     @GetMapping
     public List<ProductDto> listProducts(@RequestParam(required = false) String voucherCode) {
         return voucherCode != null ?
@@ -37,9 +37,9 @@ public class ProductController {
 
     }
 
-    @ApiOperation(value = "Subscribe to Product")
-    @PostMapping("/{id}/subscribe")
-    public CustomerSubscriptionDto subscribe(@PathVariable("id") Long productId, @RequestBody @Validated SubscriptionRequestDto subscriptionRequest) {
+    @ApiOperation(value = "Subscribe to Product - Buy/subscribe to product for given customer")
+    @PostMapping("/{productId}/subscribe")
+    public CustomerSubscriptionDto subscribe(@PathVariable("productId") Long productId, @RequestBody @Validated SubscriptionRequestDto subscriptionRequest) {
         return productService.subscribe(productId, subscriptionRequest);
     }
 

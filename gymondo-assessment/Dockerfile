@@ -1,5 +1,7 @@
-FROM openjdk:11.0.8
+FROM maven:3.8.2-jdk-11
 
-COPY ./target/gymondo-assessment-0.0.1-SNAPSHOT.jar application.jar
+WORKDIR /gymondo-assessment
+COPY . .
+CMD mvn clean install
 
-ENTRYPOINT ["java", "-jar", "application.jar"]
+CMD mvn spring-boot:run

@@ -7,18 +7,27 @@ import com.gymondo.model.enums.CustomerSubscriptionStatus;
 import com.gymondo.model.enums.DiscountType;
 import com.gymondo.model.mapper.CustomerSubscriptionMapper;
 import com.gymondo.repository.CustomerSubscriptionRepository;
+import com.gymondo.util.DateUtil;
 import com.gymondo.util.PriceCalculator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionService {
+
+    @Value("${gymondo.subscription.trial.duration}")
+    private long trialDuration;
+
+    @Value("${gymondo.subscription.trial.duration.type}")
+    private String trialDurationType;
 
     private final CustomerSubscriptionRepository customerSubscriptionRepository;
     private final SubscriptionService subscriptionService;
@@ -42,46 +51,26 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
 
         Customer customer = customerService.getCustomerEntity(subscriptionRequest.getCustomerId());
 
-        Subscription subscription = subscriptionService.getSubscriptionEntity(subscriptionRequest.getSubscriptionId());
-
-        if (subscription.getProduct().getId() != product.getId()) {
-            throw new IllegalArgumentException(String.format("Subscription with id: %s can not be used for product with id: %s", subscription.getId(), product.getId()));
-        }
-
-        Voucher voucher = null;
-        if (subscriptionRequest.getVoucherCode() != null) {
-            voucher = voucherService.getVoucherEntityByCode(subscriptionRequest.getVoucherCode());
-            boolean isValidVoucherForProduct = product.getVouchers().stream()
-                    .anyMatch(it -> it.getCode().equals(subscriptionRequest.getVoucherCode()));
-
-            if (!isValidVoucherForProduct) {
-                throw new IllegalArgumentException(String.format("Voucher with id: %s can not be used for product with id: %s", voucher.getId(), product.getId()));
-            }
-        }
+        Subscription subscription = getAndValidateSubscription(subscriptionRequest.getSubscriptionId(), product);
 
         CustomerSubscription customerSubscription = new CustomerSubscription();
         customerSubscription.setSubscription(subscription);
         customerSubscription.setCustomer(customer);
 
-        Double price = subscription.getPrice();
+        Voucher voucher = getAndValidateVoucher(subscriptionRequest.getVoucherCode(), product);
 
-        if (voucher != null) {
-            price = voucher.getDiscountType() == DiscountType.PERCENTAGE.getValue() ?
-                    PriceCalculator.calculateDiscountPrice(price, voucher.getDiscountPercentage())
-                    : PriceCalculator.calculateDiscountPrice(price, voucher.getDiscountAmount());
+        customerSubscription.setVoucher(voucher);
 
-            customerSubscription.setVoucher(voucher);
-        }
+        Double price = calculatePrice(subscription.getPrice(), voucher);
 
         customerSubscription.setPrice(price);
         customerSubscription.setTax(PriceCalculator.calculateTax(price, subscription.getTaxPercentage()));
 
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusMonths(subscription.getMonthDuration());
-        customerSubscription.setStartDate(startDate);
-        customerSubscription.setEndDate(endDate);
-
         customerSubscription.setStatus(CustomerSubscriptionStatus.ACTIVE.getValue());
+
+        customerSubscription.setTrial(subscriptionRequest.getTrial());
+
+        setDates(customerSubscription, subscription.getMonthDuration());
 
         return customerSubscription;
     }
@@ -119,9 +108,12 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
         CustomerSubscription customerSubscription = getEntityById(id);
         if (!customerSubscription.getStatus().equals(CustomerSubscriptionStatus.ACTIVE.getValue())) {
             throw new IllegalArgumentException(String.format("You can't pause non-active subscription, subscription status: ", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus())));
+        } else if (customerSubscription.getTrial()) {
+            throw new IllegalArgumentException(String.format("You can't pause subscription during trial."));
         }
 
         customerSubscription.setStatus(CustomerSubscriptionStatus.PAUSED.getValue());
+        customerSubscription.setPauseDate(LocalDate.now());
         customerSubscription = customerSubscriptionRepository.save(customerSubscription);
         return CustomerSubscriptionMapper.toDto(customerSubscription);
     }
@@ -133,6 +125,15 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
             throw new IllegalArgumentException(String.format("Subscription is not paused, subscription status: ", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus())));
         }
         customerSubscription.setStatus(CustomerSubscriptionStatus.ACTIVE.getValue());
+
+        LocalDate today = LocalDate.now();
+        LocalDate pauseDate = customerSubscription.getPauseDate();
+        long pausedDayDuration = DateUtil.getDayDifference(pauseDate, today);
+
+        LocalDate newEndDate = customerSubscription.getEndDate().plusDays(pausedDayDuration);
+        customerSubscription.setEndDate(newEndDate);
+        customerSubscription.setPauseDate(null);
+
         customerSubscription = customerSubscriptionRepository.save(customerSubscription);
         return CustomerSubscriptionMapper.toDto(customerSubscription);
     }
@@ -140,8 +141,8 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
     @Override
     public CustomerSubscriptionDto cancel(Long id) {
         CustomerSubscription customerSubscription = getEntityById(id);
-        if (customerSubscription.getStatus().equals(CustomerSubscriptionStatus.CANCELED.getValue())) {
-            throw new IllegalArgumentException("Subscription is already canceled.");
+        if (!customerSubscription.getStatus().equals(CustomerSubscriptionStatus.ACTIVE.getValue())) {
+            throw new IllegalArgumentException(String.format("You can't cancel non-active subscription, subscription status: ", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus())));
         }
 
         customerSubscription.setStatus(CustomerSubscriptionStatus.CANCELED.getValue());
@@ -167,7 +168,60 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
             throw new EntityExistsException(String.format("You already have subscription for this product, subscriptionId: %s, subscription status: %s",
                     subscriptionId, CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus())));
         }
+    }
+
+    private Double calculatePrice(Double price, Voucher voucher) {
+        if (voucher != null) {
+            price = voucher.getDiscountType() == DiscountType.PERCENTAGE.getValue() ?
+                    PriceCalculator.calculateDiscountPrice(price, voucher.getDiscountPercentage())
+                    : PriceCalculator.calculateDiscountPrice(price, voucher.getDiscountAmount());
 
 
+        }
+
+        return price;
+    }
+
+    private Subscription getAndValidateSubscription(Long subscriptionId, Product product) {
+        Subscription subscription = subscriptionService.getSubscriptionEntity(subscriptionId);
+
+        if (subscription.getProduct().getId() != product.getId()) {
+            throw new IllegalArgumentException(String.format("Subscription with id: %s can not be used for product: %s", subscription.getId(), product.getName()));
+        }
+
+        return subscription;
+    }
+
+    private Voucher getAndValidateVoucher(String voucherCode, Product product) {
+        Voucher voucher = null;
+        if (voucherCode != null) {
+            voucher = voucherService.getVoucherEntityByCode(voucherCode);
+            boolean isValidVoucherForProduct = product.getVouchers().stream()
+                    .anyMatch(it -> it.getCode().equals(voucherCode));
+
+            if (!isValidVoucherForProduct) {
+                throw new IllegalArgumentException(String.format("Voucher code: %s can not be used for product %s", voucher.getCode(), product.getName()));
+            }
+
+        }
+
+        return voucher;
+    }
+
+    private void setDates(CustomerSubscription customerSubscription, int subscriptionDuration) {
+        LocalDate today = LocalDate.now();
+        if (customerSubscription.getTrial()) {
+            customerSubscription.setTrialStartDate(today);
+            LocalDate trialEndDate = today.plus(trialDuration, ChronoUnit.valueOf(trialDurationType));
+            customerSubscription.setTrialEndDate(trialEndDate);
+
+            LocalDate subscriptionEndDate = trialEndDate.plusMonths(subscriptionDuration);
+            customerSubscription.setStartDate(trialEndDate);
+            customerSubscription.setEndDate(subscriptionEndDate);
+        } else {
+            LocalDate endDate = today.plusMonths(subscriptionDuration);
+            customerSubscription.setStartDate(today);
+            customerSubscription.setEndDate(endDate);
+        }
     }
 }

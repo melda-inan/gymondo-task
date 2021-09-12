@@ -18,15 +18,15 @@ public class CustomerSubscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
 
@@ -40,4 +40,11 @@ public class CustomerSubscription {
 
     private String status;
 
+    private Boolean trial;
+
+    private LocalDate trialStartDate;
+
+    private LocalDate trialEndDate;
+
+    private LocalDate pauseDate;
 }

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.RequestParameterBuilder;
+import springfox.documentation.schema.Example;
 import springfox.documentation.service.ParameterType;
 import springfox.documentation.service.RequestParameter;
 import springfox.documentation.spi.DocumentationType;
@@ -30,6 +31,7 @@ public class SpringFoxConfiguration {
                 .description("Api Key information to access APIs")
                 .required(true)
                 .in(ParameterType.HEADER)
+                .example(new Example("a1111-b111c-d1111-1111e"))
                 .build();
     }
 

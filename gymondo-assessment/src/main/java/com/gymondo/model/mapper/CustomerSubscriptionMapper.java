@@ -28,6 +28,10 @@ public final class CustomerSubscriptionMapper {
         customerSubscriptionDto.setTax(customerSubscription.getTax());
         customerSubscriptionDto.setVoucher(VoucherMapper.toDto(customerSubscription.getVoucher()));
         customerSubscriptionDto.setStatus(CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus()));
+        customerSubscriptionDto.setTrial(customerSubscription.getTrial());
+        customerSubscriptionDto.setTrialStartDate(customerSubscription.getTrialStartDate());
+        customerSubscriptionDto.setTrialEndDate(customerSubscription.getTrialEndDate());
+        customerSubscriptionDto.setPauseDate(customerSubscription.getPauseDate());
 
         return customerSubscriptionDto;
     }

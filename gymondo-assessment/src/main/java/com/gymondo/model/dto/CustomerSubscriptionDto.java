@@ -1,5 +1,6 @@
 package com.gymondo.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.gymondo.model.enums.CustomerSubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomerSubscriptionDto {
     private Long id;
     private CustomerDto customer;
@@ -24,6 +26,10 @@ public class CustomerSubscriptionDto {
     private Double tax;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Boolean trial;
+    private LocalDate trialStartDate;
+    private LocalDate trialEndDate;
+    private LocalDate pauseDate;
 
     @Enumerated(EnumType.STRING)
     private CustomerSubscriptionStatus status;
