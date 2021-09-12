@@ -1,5 +1,7 @@
 package com.gymondo.model.enums;
 
+import java.util.Arrays;
+
 public enum DiscountType {
     PERCENTAGE(0),
     FIXED_AMOUNT(1);
@@ -16,13 +18,9 @@ public enum DiscountType {
     }
 
     public static DiscountType fromValue(Integer value) {
-        switch (value) {
-            case 0:
-                return PERCENTAGE;
-            case 1:
-                return FIXED_AMOUNT;
-            default:
-                throw new IllegalArgumentException(value + " is not a supported discount type for vouchers.");
-        }
+        return Arrays.stream(values())
+                     .filter(it -> it.getValue().equals(value))
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalArgumentException(value + " is not a supported discount type for vouchers."));
     }
 }

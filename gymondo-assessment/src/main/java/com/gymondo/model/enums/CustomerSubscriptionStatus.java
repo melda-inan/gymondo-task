@@ -1,5 +1,7 @@
 package com.gymondo.model.enums;
 
+import java.util.Arrays;
+
 public enum CustomerSubscriptionStatus {
     ACTIVE("A"),
     PAUSED("P"),
@@ -16,16 +18,10 @@ public enum CustomerSubscriptionStatus {
     }
 
     public static CustomerSubscriptionStatus fromValue(String value) {
-        switch (value) {
-            case "A":
-                return CustomerSubscriptionStatus.ACTIVE;
-            case "P":
-                return CustomerSubscriptionStatus.PAUSED;
-            case "C":
-                return CustomerSubscriptionStatus.CANCELED;
-            default:
-                throw new IllegalArgumentException(value + " is not a supported status for subscriptions.");
-        }
+        return Arrays.stream(values())
+                     .filter(it -> it.getValue().equals(value))
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalArgumentException(String.format("%s is not a supported status for subscriptions.", value)));
     }
 }
 
