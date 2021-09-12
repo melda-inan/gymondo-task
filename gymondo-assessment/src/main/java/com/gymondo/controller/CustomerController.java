@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("v1/customer")
-@Api("Customer APIs")
+@Api(tags = "Customer APIs")
 public class CustomerController {
 
     private final CustomerService customerService;

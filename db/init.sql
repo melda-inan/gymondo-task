@@ -50,7 +50,7 @@ CREATE TABLE customer_subscription (
 	start_date date,
 	end_date date,
 	status varchar(1),
-	trial varchar(1),
+	trial boolean,
 	trial_start_date date,
 	trial_end_date date,
 	pause_date date,
