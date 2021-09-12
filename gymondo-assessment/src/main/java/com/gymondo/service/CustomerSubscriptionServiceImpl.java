@@ -107,7 +107,7 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
     public CustomerSubscriptionDto pause(Long id) {
         CustomerSubscription customerSubscription = getEntityById(id);
         if (!customerSubscription.getStatus().equals(CustomerSubscriptionStatus.ACTIVE.getValue())) {
-            throw new IllegalArgumentException(String.format("You can't pause non-active subscription, subscription status: ", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus())));
+            throw new IllegalArgumentException(String.format("You can't pause non-active subscription, subscription status: %s", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus()).name()));
         } else if (customerSubscription.getTrial()) {
             throw new IllegalArgumentException(String.format("You can't pause subscription during trial."));
         }
@@ -122,7 +122,7 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
     public CustomerSubscriptionDto unpause(Long id) {
         CustomerSubscription customerSubscription = getEntityById(id);
         if (!customerSubscription.getStatus().equals(CustomerSubscriptionStatus.PAUSED.getValue())) {
-            throw new IllegalArgumentException(String.format("Subscription is not paused, subscription status: ", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus())));
+            throw new IllegalArgumentException(String.format("Subscription is not paused, subscription status: %s", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus()).name()));
         }
         customerSubscription.setStatus(CustomerSubscriptionStatus.ACTIVE.getValue());
 
@@ -142,7 +142,7 @@ public class CustomerSubscriptionServiceImpl implements CustomerSubscriptionServ
     public CustomerSubscriptionDto cancel(Long id) {
         CustomerSubscription customerSubscription = getEntityById(id);
         if (!customerSubscription.getStatus().equals(CustomerSubscriptionStatus.ACTIVE.getValue())) {
-            throw new IllegalArgumentException(String.format("You can't cancel non-active subscription, subscription status: ", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus())));
+            throw new IllegalArgumentException(String.format("You can't cancel non-active subscription, subscription status: %s", CustomerSubscriptionStatus.fromValue(customerSubscription.getStatus()).name()));
         }
 
         customerSubscription.setStatus(CustomerSubscriptionStatus.CANCELED.getValue());
