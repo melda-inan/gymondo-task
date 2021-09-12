@@ -14,3 +14,5 @@ docker-compose up
 After containers are ready; 
 - You can access db on http://localhost:5432/gymondo-db with username: admin and password: admin.  
 - You can access API documentation on http://localhost:8080/gymondo/api/swagger-ui/. Also you can try out the APIs here. You need API-KEY for authorization. You can use "e204d7bf-3013-4848-91bb-c5000480a5e8" as API-KEY.
+
+** If you can't access with localhost, please try with your docker-machine ip.
